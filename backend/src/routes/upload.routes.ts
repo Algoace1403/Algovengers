@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import archiver from 'archiver';
 import storageService from '../services/storage.service';
 import jsonAnalyzer from '../services/json-analyzer.service';
 import { authMiddleware } from '../middleware/auth.middleware';
@@ -165,6 +166,119 @@ router.get('/structure', authMiddleware, (req: Request, res: Response) => {
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Download file endpoint (PROTECTED)
+router.get('/download/:category/:subcategory/:filename', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { category, subcategory, filename } = req.params;
+
+    const userStoragePath = path.join(__dirname, '../../storage/users', userId, 'media');
+    const filePath = path.join(userStoragePath, category, subcategory, filename);
+
+    // Security check: ensure file is within user's directory
+    if (!filePath.startsWith(userStoragePath)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    console.log(`📥 User ${userId} downloading: ${category}/${subcategory}/${filename}`);
+    res.download(filePath, filename);
+
+  } catch (error: any) {
+    console.error('Download error:', error);
+    res.status(500).json({ error: 'Download failed' });
+  }
+});
+
+// Delete file endpoint (PROTECTED)
+router.delete('/delete/:category/:subcategory/:filename', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { category, subcategory, filename } = req.params;
+
+    const success = storageService.deleteFile(userId, category, subcategory, filename);
+
+    if (success) {
+      const stats = storageService.getStorageStats(userId);
+      res.json({
+        success: true,
+        message: 'File deleted successfully',
+        stats
+      });
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
+
+  } catch (error: any) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+// Bulk download/ZIP endpoint (PROTECTED - PREMIUM ONLY)
+router.post('/bulk-download', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { files } = req.body; // Array of file paths like "category/subcategory/filename"
+
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ error: 'No files specified' });
+    }
+
+    console.log(`📦 User ${userId}: Creating ZIP with ${files.length} files`);
+
+    const userStoragePath = path.join(__dirname, '../../storage/users', userId, 'media');
+
+    // Set response headers for ZIP download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="download-${Date.now()}.zip"`);
+
+    // Create archiver instance
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Maximum compression
+    });
+
+    // Pipe archive to response
+    archive.pipe(res);
+
+    // Add files to archive
+    let addedCount = 0;
+    for (const filePath of files) {
+      const fullPath = path.join(userStoragePath, filePath);
+
+      // Security check
+      if (!fullPath.startsWith(userStoragePath)) {
+        console.warn(`⚠️ Security: Blocked access to ${fullPath}`);
+        continue;
+      }
+
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        const filename = path.basename(filePath);
+        archive.file(fullPath, { name: filename });
+        addedCount++;
+      } else {
+        console.warn(`⚠️ File not found: ${filePath}`);
+      }
+    }
+
+    if (addedCount === 0) {
+      return res.status(404).json({ error: 'No valid files found' });
+    }
+
+    console.log(`✅ User ${userId}: Added ${addedCount} files to ZIP`);
+
+    // Finalize archive
+    await archive.finalize();
+
+  } catch (error: any) {
+    console.error('Bulk download error:', error);
+    res.status(500).json({ error: 'Bulk download failed' });
   }
 });
 

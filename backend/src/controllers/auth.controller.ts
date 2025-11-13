@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 // In-memory user storage (for hackathon - replace with database later)
 interface User {
@@ -9,19 +12,72 @@ interface User {
   password: string;
   fullName: string;
   createdAt: Date;
+  subscriptionTier?: 'free' | 'premium';
+  storageUsed?: number;
 }
 
-const users: User[] = [];
+// File-based persistence for users
+const USERS_FILE = path.join(__dirname, '../../storage/users.json');
+
+// Initialize users array from file or empty array
+const loadUsers = (): User[] => {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const data = fs.readFileSync(USERS_FILE, 'utf-8');
+      const parsed = JSON.parse(data);
+      console.log(`📋 Loaded ${parsed.length} users from storage`);
+      return parsed;
+    }
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+  return [];
+};
+
+// Save users to file
+const saveUsers = (users: User[]): void => {
+  try {
+    const dir = path.dirname(USERS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    console.log(`💾 Saved ${users.length} users to storage`);
+  } catch (error) {
+    console.error('Error saving users:', error);
+  }
+};
+
+const users: User[] = loadUsers();
+
+// Generate unique user ID using crypto UUID
+const generateUniqueUserId = (): string => {
+  let userId: string;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  do {
+    // Generate a random UUID (guaranteed unique)
+    userId = crypto.randomUUID();
+    attempts++;
+
+    // Extra safety check (though UUID collisions are virtually impossible)
+    if (!users.find(u => u.id === userId)) {
+      break;
+    }
+  } while (attempts < maxAttempts);
+
+  if (attempts >= maxAttempts) {
+    throw new Error('Failed to generate unique user ID');
+  }
+
+  return userId;
+};
 
 // Helper to generate JWT token
-const generateToken = (userId: string, email: string): string => {
+const generateToken = (userId: string, email: string) => {
   const secret = process.env.JWT_SECRET || 'fallback-secret';
-
-  return jwt.sign(
-    { userId, email },
-    secret,
-    { expiresIn: '7d' } as jwt.SignOptions
-  ) as string;
+  return jwt.sign({ userId, email }, secret, { expiresIn: '7d' }) as string;
 };
 
 // Register new user
@@ -53,21 +109,27 @@ export const register = async (req: Request, res: Response) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Generate unique user ID
+    const uniqueId = generateUniqueUserId();
+
+    // Create user with default free tier
     const newUser: User = {
-      id: Date.now().toString(),
+      id: uniqueId,
       email: email.toLowerCase(),
       password: hashedPassword,
       fullName,
-      createdAt: new Date()
+      createdAt: new Date(),
+      subscriptionTier: 'free',
+      storageUsed: 0
     };
 
     users.push(newUser);
+    saveUsers(users); // Persist to file
 
     // Generate token
     const token = generateToken(newUser.id, newUser.email);
 
-    console.log(`✅ New user registered: ${email}`);
+    console.log(`✅ New user registered: ${email} | ID: ${newUser.id} | Tier: FREE | Total Users: ${users.length}`);
 
     res.status(201).json({
       success: true,
@@ -76,7 +138,9 @@ export const register = async (req: Request, res: Response) => {
       user: {
         id: newUser.id,
         email: newUser.email,
-        fullName: newUser.fullName
+        fullName: newUser.fullName,
+        subscriptionTier: newUser.subscriptionTier,
+        storageUsed: newUser.storageUsed
       }
     });
 
@@ -117,7 +181,7 @@ export const login = async (req: Request, res: Response) => {
     // Generate token
     const token = generateToken(user.id, user.email);
 
-    console.log(`✅ User logged in: ${email}`);
+    console.log(`✅ User logged in: ${email} | ID: ${user.id} | Tier: ${user.subscriptionTier?.toUpperCase() || 'FREE'}`);
 
     res.json({
       success: true,
@@ -126,7 +190,9 @@ export const login = async (req: Request, res: Response) => {
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName,
+        subscriptionTier: user.subscriptionTier || 'free',
+        storageUsed: user.storageUsed || 0
       }
     });
 
