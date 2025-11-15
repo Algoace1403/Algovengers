@@ -6,7 +6,14 @@ interface User {
   id: string;
   email: string;
   fullName: string;
+  name?: string;
   subscriptionTier?: 'free' | 'premium';
+  subscription?: {
+    tier: 'free' | 'premium';
+    startDate?: Date;
+    endDate?: Date;
+    paymentId?: string;
+  };
   storageUsed?: number;
 }
 
@@ -73,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await axios.post(`${API_URL}/auth/register`, {
             email,
             password,
-            fullName
+            name: fullName // Backend expects "name" not "fullName"
           });
 
           const { token, user } = response.data;

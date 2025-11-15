@@ -77,12 +77,8 @@ export default function UploadPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: uploadMode === 'files'
-      ? {
-          'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-          'video/*': ['.mp4', '.mov', '.avi', '.mkv']
-        }
-      : undefined,
+    // Accept all file types - AI will categorize them
+    accept: uploadMode === 'files' ? {} : undefined,
   });
 
   const removeFile = (index: number) => {
@@ -244,7 +240,7 @@ export default function UploadPage() {
                 </h3>
                 <p className="text-gray-600 mb-2">or click to browse</p>
                 <p className="text-sm text-gray-500">
-                  Images, Videos supported • AI categorization enabled ✨
+                  All file types supported • AI categorization enabled ✨
                 </p>
               </div>
             </div>

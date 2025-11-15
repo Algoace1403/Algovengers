@@ -6,7 +6,9 @@ import fs from 'fs';
 import archiver from 'archiver';
 import storageService from '../services/storage.service';
 import jsonAnalyzer from '../services/json-analyzer.service';
+import analyticsService from '../services/analytics.service';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { getUserById } from '../controllers/auth.controller';
 
 const router = Router();
 
@@ -31,15 +33,8 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB max
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|mov|avi|mkv/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type!'));
-    }
+    // Allow all file types - AI will categorize them
+    cb(null, true);
   }
 });
 
@@ -55,20 +50,25 @@ router.post('/', authMiddleware, upload.array('files', 10), async (req: Request,
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
+    // Get user subscription tier
+    const user = await getUserById(userId);
+    const tier = user?.subscription?.tier || 'free';
+
     // Check storage limit
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-    const storageCheck = storageService.checkStorageLimit(userId, totalSize);
+    const storageCheck = storageService.checkStorageLimit(userId, totalSize, tier);
 
     if (!storageCheck.allowed) {
       const usedGB = (storageCheck.currentSize / (1024 * 1024 * 1024)).toFixed(2);
+      const limitGB = tier === 'premium' ? 500 : 100;
       return res.status(413).json({
-        error: `Storage limit exceeded! You've used ${usedGB}GB of your 100GB limit.`,
+        error: `Storage limit exceeded! You've used ${usedGB}GB of your ${limitGB}GB limit.`,
         currentSize: storageCheck.currentSize,
         limit: storageCheck.limit
       });
     }
 
-    console.log(`📥 User ${userId}: Received ${files.length} files`);
+    console.log(`📥 User ${userId} (${tier.toUpperCase()}): Received ${files.length} files`);
 
     // Organize files using storage service
     const filesInfo = files.map(f => ({
@@ -76,12 +76,24 @@ router.post('/', authMiddleware, upload.array('files', 10), async (req: Request,
       originalName: f.originalname
     }));
 
-    const organized = storageService.organizeFiles(userId, filesInfo, aiCategories);
+    const organized = storageService.organizeFiles(userId, filesInfo, aiCategories, tier);
 
     console.log(`✅ User ${userId}: Organized ${organized.length} files`);
 
+    // Track analytics events for each upload
+    for (const org of organized) {
+      if (org.success) {
+        const categoryParts = org.folder.split('/');
+        await analyticsService.trackEvent(userId, 'upload', {
+          category: categoryParts[0],
+          subcategory: categoryParts[1],
+          fileSize: org.size,
+        });
+      }
+    }
+
     // Get updated storage stats
-    const stats = storageService.getStorageStats(userId);
+    const stats = storageService.getStorageStats(userId, tier);
 
     res.json({
       success: true,
@@ -152,12 +164,16 @@ router.post('/json', async (req: Request, res: Response) => {
 
 
 // Get folder structure endpoint (PROTECTED)
-router.get('/structure', authMiddleware, (req: Request, res: Response) => {
+router.get('/structure', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
 
+    // Get user subscription tier
+    const user = await getUserById(userId);
+    const tier = user?.subscription?.tier || 'free';
+
     const structure = storageService.getFolderStructure(userId);
-    const stats = storageService.getStorageStats(userId);
+    const stats = storageService.getStorageStats(userId, tier);
 
     res.json({
       success: true,
@@ -170,16 +186,22 @@ router.get('/structure', authMiddleware, (req: Request, res: Response) => {
 });
 
 // Download file endpoint (PROTECTED)
-router.get('/download/:category/:subcategory/:filename', authMiddleware, (req: Request, res: Response) => {
+router.get('/download/:category/:subcategory/:filename', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { category, subcategory, filename } = req.params;
 
-    const userStoragePath = path.join(__dirname, '../../storage/users', userId, 'media');
-    const filePath = path.join(userStoragePath, category, subcategory, filename);
+    // Sanitize inputs to prevent path traversal
+    const sanitizedCategory = path.basename(category);
+    const sanitizedSubcategory = path.basename(subcategory);
+    const sanitizedFilename = path.basename(filename);
+
+    const userStoragePath = path.resolve(__dirname, '../../storage/users', userId, 'media');
+    const filePath = path.resolve(userStoragePath, sanitizedCategory, sanitizedSubcategory, sanitizedFilename);
 
     // Security check: ensure file is within user's directory
     if (!filePath.startsWith(userStoragePath)) {
+      console.warn(`⚠️  Path traversal attempt by user ${userId}: ${filePath}`);
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -187,8 +209,15 @@ router.get('/download/:category/:subcategory/:filename', authMiddleware, (req: R
       return res.status(404).json({ error: 'File not found' });
     }
 
-    console.log(`📥 User ${userId} downloading: ${category}/${subcategory}/${filename}`);
-    res.download(filePath, filename);
+    console.log(`📥 User ${userId} downloading: ${sanitizedCategory}/${sanitizedSubcategory}/${sanitizedFilename}`);
+
+    // Track download event
+    await analyticsService.trackEvent(userId, 'download', {
+      category: sanitizedCategory,
+      subcategory: sanitizedSubcategory,
+    });
+
+    res.download(filePath, sanitizedFilename);
 
   } catch (error: any) {
     console.error('Download error:', error);
@@ -197,15 +226,25 @@ router.get('/download/:category/:subcategory/:filename', authMiddleware, (req: R
 });
 
 // Delete file endpoint (PROTECTED)
-router.delete('/delete/:category/:subcategory/:filename', authMiddleware, (req: Request, res: Response) => {
+router.delete('/delete/:category/:subcategory/:filename', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { category, subcategory, filename } = req.params;
 
+    // Get user subscription tier
+    const user = await getUserById(userId);
+    const tier = user?.subscription?.tier || 'free';
+
     const success = storageService.deleteFile(userId, category, subcategory, filename);
 
     if (success) {
-      const stats = storageService.getStorageStats(userId);
+      // Track delete event
+      await analyticsService.trackEvent(userId, 'delete', {
+        category,
+        subcategory,
+      });
+
+      const stats = storageService.getStorageStats(userId, tier);
       res.json({
         success: true,
         message: 'File deleted successfully',

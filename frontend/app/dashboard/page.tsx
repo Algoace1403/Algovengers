@@ -29,7 +29,10 @@ import {
   Square,
   Lock,
   Moon,
-  Sun
+  Sun,
+  Shield,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 interface StorageStats {
@@ -272,64 +275,71 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-premium-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin-slow text-6xl mb-4">📊</div>
-          <p className="text-gray-600 text-lg">Loading your storage...</p>
+          <div className="luxury-spinner mx-auto mb-6"></div>
+          <p className="text-gold-200 text-lg font-display tracking-wider">Loading your storage...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-gray-700 sticky top-0 z-50 transition-colors duration-300">
+    <div className="min-h-screen bg-premium-950 transition-colors duration-300">
+      {/* Premium Header */}
+      <header className="bg-premium-900/80 backdrop-blur-xl shadow-luxury border-b border-gold-500/20 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="text-3xl">🗂️</div>
+            <Link href="/" className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-gold flex items-center justify-center">
+                <span className="text-premium-950 font-display text-2xl">IS</span>
+              </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold gradient-text">Intelligent Storage</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-display font-bold text-gold-500 tracking-wide uppercase">Intelligent Storage</h1>
                   {user?.subscriptionTier === 'premium' ? (
-                    <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-purple-600 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                    <span className="premium-badge flex items-center gap-1">
                       <Crown className="w-3 h-3" />
                       PREMIUM
                     </span>
                   ) : (
-                    <span className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded-full">
+                    <span className="px-3 py-1 bg-premium-800 text-gold-200/70 text-xs font-bold uppercase tracking-wider border border-gold-500/20">
                       FREE
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-300">Welcome, {user?.fullName}</p>
+                <p className="text-xs text-gold-200/60 tracking-wide">Welcome, {user?.fullName}</p>
               </div>
             </Link>
             <div className="flex items-center gap-3">
+              <Link href="/ai-training">
+                <button className="btn bg-premium-800 text-gold-500 border border-gold-500/30 hover:bg-premium-700 flex items-center gap-2">
+                  <Sparkles size={18} />
+                  <span className="uppercase tracking-wider text-xs">AI Training</span>
+                </button>
+              </Link>
               {user?.subscriptionTier === 'premium' && (
                 <Link href="/analytics">
-                  <button className="btn bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center gap-2">
+                  <button className="btn bg-premium-800 text-gold-500 border border-gold-500/30 hover:bg-premium-700 flex items-center gap-2">
                     <BarChart3 size={18} />
-                    Analytics
+                    <span className="uppercase tracking-wider text-xs">Analytics</span>
                   </button>
                 </Link>
               )}
               {user?.subscriptionTier !== 'premium' && (
                 <Link href="/pricing">
-                  <button className="btn bg-gradient-to-r from-orange-500 to-purple-600 text-white flex items-center gap-2">
+                  <button className="btn-luxury flex items-center gap-2">
                     <Zap size={18} />
-                    Upgrade to Premium
+                    <span className="uppercase tracking-wider text-xs">Upgrade</span>
                   </button>
                 </Link>
               )}
               <Link href="/upload">
-                <button className="btn btn-primary flex items-center gap-2">
+                <button className="btn-luxury flex items-center gap-2">
                   <Upload size={18} />
-                  Upload Files
+                  <span className="uppercase tracking-wider text-xs">Upload</span>
                 </button>
               </Link>
-              {/* Dark Mode Toggle (Premium Feature) */}
               <button
                 onClick={() => {
                   if (user?.subscriptionTier !== 'premium') {
@@ -338,20 +348,20 @@ export default function DashboardPage() {
                   }
                   toggleDarkMode();
                 }}
-                className="btn btn-secondary flex items-center gap-2 relative"
+                className="btn bg-premium-800 text-gold-500 border border-gold-500/30 hover:bg-premium-700 flex items-center gap-2 relative"
                 title="Toggle Dark Mode (Premium)"
               >
                 {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
                 {user?.subscriptionTier !== 'premium' && (
-                  <Lock size={12} className="absolute -top-1 -right-1 text-orange-500" />
+                  <Lock size={12} className="absolute -top-1 -right-1 text-gold-500" />
                 )}
               </button>
               <button
                 onClick={handleLogout}
-                className="btn btn-secondary flex items-center gap-2"
+                className="btn bg-premium-800 text-gold-500 border border-gold-500/30 hover:bg-premium-700 flex items-center gap-2"
               >
                 <LogOut size={18} />
-                Logout
+                <span className="uppercase tracking-wider text-xs">Logout</span>
               </button>
             </div>
           </div>
@@ -359,43 +369,169 @@ export default function DashboardPage() {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {/* Storage Usage Card */}
+        {/* Premium Storage Usage Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card mb-8 bg-gradient-to-r from-orange-500 to-purple-600 text-white"
+          className="card-dark mb-8 bg-gradient-to-br from-premium-900 to-premium-950 border-2 border-gold-500/30 luxury-pulse"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold mb-1">Storage Usage</h2>
-              <p className="text-white/80">
+              <h2 className="text-3xl font-display font-bold text-gold-500 mb-2 tracking-wide">Storage Usage</h2>
+              <p className="text-gold-100/80 text-lg">
                 {(stats?.usedGB || 0).toFixed(2)} GB / {stats?.limitGB || 100} GB used
               </p>
-              <p className="text-xs text-white/60 mt-1">
+              <p className="text-xs text-gold-200/50 mt-1 tracking-wide uppercase">
                 {user?.subscriptionTier === 'premium' ? '500 GB Premium Storage' : '100 GB Free Storage'}
               </p>
             </div>
-            <HardDrive size={48} className="opacity-80" />
+            <HardDrive size={56} className="text-gold-500/50" />
           </div>
 
-          <div className="w-full bg-white/20 rounded-full h-4 mb-2">
+          <div className="w-full bg-premium-800 h-6 mb-3 border border-gold-500/20">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${stats?.percentUsed || 0}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="bg-white h-4 rounded-full"
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="h-6 bg-gradient-gold"
               style={{
-                backgroundColor: (stats?.percentUsed || 0) > 90 ? '#ef4444' : (stats?.percentUsed || 0) > 70 ? '#f59e0b' : '#ffffff'
+                opacity: (stats?.percentUsed || 0) > 90 ? 0.8 : 1
               }}
             />
           </div>
 
-          <p className="text-sm text-white/80">
-            {(100 - (stats?.percentUsed || 0)).toFixed(1)}% available ({((stats?.limitGB || 100) - (stats?.usedGB || 0)).toFixed(2)} GB free)
+          <p className="text-sm text-gold-200/70 tracking-wide">
+            {(100 - (stats?.percentUsed || 0)).toFixed(1)}% available • {((stats?.limitGB || 100) - (stats?.usedGB || 0)).toFixed(2)} GB remaining
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
+        {/* Premium Features Showcase (Free Users Only) */}
+        {user?.subscriptionTier !== 'premium' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="card-dark mb-8 bg-gradient-to-br from-gold-500/10 via-premium-900 to-premium-950 border-4 border-gold-500/40 relative overflow-hidden"
+          >
+            {/* Shimmer Effect */}
+            <div className="absolute inset-0 gold-shimmer opacity-10"></div>
+
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-gold flex items-center justify-center">
+                    <Crown className="w-8 h-8 text-premium-950" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-display font-bold text-gold-500 mb-2 tracking-wide">
+                      Unlock Premium Features
+                    </h2>
+                    <p className="text-gold-100/70 tracking-wide">
+                      Upgrade to access exclusive pro features and 5x more storage
+                    </p>
+                  </div>
+                </div>
+                <div className="premium-badge flex items-center gap-2 text-base px-6 py-3">
+                  <Sparkles className="w-5 h-5" />
+                  ONLY ₹499/YEAR
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {/* Feature 1 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <HardDrive className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">500 GB Storage</h3>
+                    <p className="text-sm text-gold-100/60">5x more space than free plan</p>
+                  </div>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <Search className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">Advanced AI Search</h3>
+                    <p className="text-sm text-gold-100/60">Find files by content and context</p>
+                  </div>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <Star className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">Favorites & Bulk Ops</h3>
+                    <p className="text-sm text-gold-100/60">Mark favorites and bulk download</p>
+                  </div>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">Advanced Analytics</h3>
+                    <p className="text-sm text-gold-100/60">Detailed insights and reports</p>
+                  </div>
+                </div>
+
+                {/* Feature 5 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <Moon className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">Dark Mode</h3>
+                    <p className="text-sm text-gold-100/60">Premium dark theme support</p>
+                  </div>
+                </div>
+
+                {/* Feature 6 */}
+                <div className="flex items-start gap-3 p-4 bg-premium-900/50 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
+                  <div className="w-10 h-10 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-5 h-5 text-gold-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-gold-500 mb-1 tracking-wide">Priority Support</h3>
+                    <p className="text-sm text-gold-100/60">24/7 premium customer support</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Section */}
+              <div className="flex items-center justify-between flex-wrap gap-4 p-6 bg-premium-900/70 border-t-2 border-gold-500/30">
+                <div>
+                  <p className="text-gold-100 font-display text-lg mb-1">
+                    <span className="text-gold-500 font-bold">Limited Time Offer:</span> Get 1 year for just ₹499
+                  </p>
+                  <p className="text-gold-200/60 text-sm tracking-wide">
+                    Join thousands of premium users • Cancel anytime
+                  </p>
+                </div>
+                <Link href="/pricing">
+                  <motion.button
+                    className="btn-luxury px-10 py-4 text-base flex items-center gap-3"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Crown className="w-5 h-5" />
+                    <span className="uppercase tracking-wider">Upgrade to Premium</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Premium Stats Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -403,64 +539,64 @@ export default function DashboardPage() {
           className="grid md:grid-cols-3 gap-6 mb-8"
         >
           {/* Total Files */}
-          <div className="card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <div className="card-dark border-2 border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm mb-1">Total Files</p>
-                <p className="text-4xl font-bold">{stats?.totalFiles || 0}</p>
+                <p className="text-gold-200/70 text-sm mb-2 uppercase tracking-wider font-display">Total Files</p>
+                <p className="luxury-number text-5xl">{stats?.totalFiles || 0}</p>
               </div>
-              <File size={40} className="opacity-80" />
+              <File size={48} className="text-gold-500/30" />
             </div>
           </div>
 
           {/* Categories */}
-          <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <div className="card-dark border-2 border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm mb-1">Categories</p>
-                <p className="text-4xl font-bold">{Object.keys(stats?.categories || {}).length}</p>
+                <p className="text-gold-200/70 text-sm mb-2 uppercase tracking-wider font-display">Categories</p>
+                <p className="luxury-number text-5xl">{Object.keys(stats?.categories || {}).length}</p>
               </div>
-              <FolderTree size={40} className="opacity-80" />
+              <FolderTree size={48} className="text-gold-500/30" />
             </div>
           </div>
 
           {/* Avg File Size */}
-          <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div className="card-dark border-2 border-gold-500/20 hover:border-gold-500/40 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm mb-1">Avg File Size</p>
-                <p className="text-4xl font-bold">
+                <p className="text-gold-200/70 text-sm mb-2 uppercase tracking-wider font-display">Avg Size</p>
+                <p className="text-2xl font-display font-bold text-gold-500">
                   {stats?.totalFiles
                     ? formatBytes((stats.totalSize || 0) / stats.totalFiles)
                     : '0 Bytes'}
                 </p>
               </div>
-              <BarChart3 size={40} className="opacity-80" />
+              <BarChart3 size={48} className="text-gold-500/30" />
             </div>
           </div>
         </motion.div>
 
-        {/* Category Breakdown */}
+        {/* Premium Category Breakdown */}
         {stats && stats.totalFiles > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="card mb-8"
+            className="card-dark border-2 border-gold-500/20 mb-8"
           >
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <BarChart3 className="text-orange-500" />
+            <h2 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-gold-500">
+              <BarChart3 size={28} />
               Category Breakdown
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(stats.categories).map(([category, count]) => (
                 <div
                   key={category}
-                  className="p-4 rounded-lg bg-gradient-to-br from-orange-50 to-purple-50 border border-orange-100"
+                  className="p-4 bg-premium-900 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-800">{category}</span>
-                    <span className="px-3 py-1 rounded-full bg-orange-500 text-white text-sm font-bold">
+                    <span className="font-display font-medium text-gold-200 tracking-wide">{category}</span>
+                    <span className="premium-badge text-xs">
                       {count}
                     </span>
                   </div>
@@ -470,77 +606,78 @@ export default function DashboardPage() {
           </motion.div>
         )}
 
-        {/* Folder Structure */}
+        {/* Premium Folder Structure */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="card"
+          className="card-dark border-2 border-gold-500/20"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <FolderTree className="text-orange-500" />
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-2xl font-display font-bold flex items-center gap-3 text-gold-500">
+              <FolderTree size={28} />
               Your Files
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {user?.subscriptionTier === 'premium' && (
                 <>
                   <button
                     onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                    className={`btn ${showFavoritesOnly ? 'btn-primary' : 'btn-secondary'} flex items-center gap-2`}
+                    className={`btn ${showFavoritesOnly ? 'btn-luxury' : 'bg-premium-800 text-gold-500 border border-gold-500/30'} flex items-center gap-2 text-xs`}
                     title="Show favorites only"
                   >
-                    <Star size={18} className={showFavoritesOnly ? 'fill-white' : ''} />
-                    Favorites {showFavoritesOnly && `(${favorites.size})`}
+                    <Star size={16} className={showFavoritesOnly ? 'fill-gold-500' : ''} />
+                    <span className="uppercase tracking-wider">Favorites {showFavoritesOnly && `(${favorites.size})`}</span>
                   </button>
                   <button
                     onClick={() => setBulkMode(!bulkMode)}
-                    className={`btn ${bulkMode ? 'btn-primary' : 'btn-secondary'} flex items-center gap-2`}
+                    className={`btn ${bulkMode ? 'btn-luxury' : 'bg-premium-800 text-gold-500 border border-gold-500/30'} flex items-center gap-2 text-xs`}
                   >
-                    <CheckSquare size={18} />
-                    Bulk {bulkMode && `(${selectedFiles.size})`}
+                    <CheckSquare size={16} />
+                    <span className="uppercase tracking-wider">Bulk {bulkMode && `(${selectedFiles.size})`}</span>
                   </button>
                   {bulkMode && selectedFiles.size > 0 && (
                     <button
                       onClick={handleBulkDownload}
-                      className="btn bg-green-600 text-white flex items-center gap-2"
+                      className="btn btn-luxury flex items-center gap-2 text-xs"
                     >
-                      <Download size={18} />
-                      Download ZIP
+                      <Download size={16} />
+                      <span className="uppercase tracking-wider">Download ZIP</span>
                     </button>
                   )}
                 </>
               )}
               <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gold-500/50" size={18} />
                 <input
                   type="text"
                   placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-premium-900 border-2 border-gold-500/30 text-gold-100 placeholder-gold-500/30 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all duration-300 font-sans text-sm"
                 />
               </div>
             </div>
           </div>
 
           {structure && Object.keys(structure).length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {Object.entries(structure).map(([category, subcategories]) => (
-                <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div key={category} className="border border-gold-500/20 overflow-hidden">
                   {/* Category Header */}
                   <button
                     onClick={() => toggleCategory(category)}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-orange-50 to-purple-50 hover:from-orange-100 hover:to-purple-100 transition-all flex items-center justify-between group"
+                    className="w-full px-5 py-4 bg-premium-900 hover:bg-premium-800 transition-all flex items-center justify-between group"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {expandedCategories.has(category) ? (
-                        <ChevronDown className="text-orange-500" size={20} />
+                        <ChevronDown className="text-gold-500" size={20} />
                       ) : (
-                        <ChevronRight className="text-orange-500" size={20} />
+                        <ChevronRight className="text-gold-500" size={20} />
                       )}
-                      <span className="font-bold text-lg">📁 {category}</span>
-                      <span className="text-sm text-gray-500">
+                      <Database size={20} className="text-gold-500/70" />
+                      <span className="font-display font-bold text-lg text-gold-200 tracking-wide">{category}</span>
+                      <span className="text-sm text-gold-500/50 tracking-wide">
                         ({Object.keys(subcategories).length} subcategories)
                       </span>
                     </div>
@@ -548,12 +685,13 @@ export default function DashboardPage() {
 
                   {/* Subcategories */}
                   {expandedCategories.has(category) && (
-                    <div className="p-4 bg-white space-y-3">
+                    <div className="p-5 bg-premium-950 space-y-4">
                       {Object.entries(subcategories).map(([subcategory, files]) => (
-                        <div key={subcategory} className="pl-6 border-l-2 border-orange-200">
-                          <div className="font-medium text-gray-700 mb-2">
-                            📂 {subcategory}
-                            <span className="ml-2 text-sm text-gray-500">
+                        <div key={subcategory} className="pl-6 border-l-2 border-gold-500/30">
+                          <div className="font-display font-medium text-gold-200 mb-3 flex items-center gap-2">
+                            <FolderTree size={16} className="text-gold-500/70" />
+                            {subcategory}
+                            <span className="ml-2 text-sm text-gold-500/50">
                               ({files.length} files)
                             </span>
                           </div>
@@ -574,8 +712,8 @@ export default function DashboardPage() {
                                 key={idx}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className="flex items-center justify-between py-2 px-3 hover:bg-orange-50 rounded-lg border border-transparent hover:border-orange-200 transition-all group"
+                                transition={{ delay: idx * 0.03 }}
+                                className="flex items-center justify-between py-3 px-4 hover:bg-premium-900 border border-transparent hover:border-gold-500/30 transition-all group"
                               >
                                 <div className="flex items-center gap-3 flex-1">
                                   {/* Bulk Selection Checkbox (Premium) */}
@@ -585,22 +723,22 @@ export default function DashboardPage() {
                                       className="p-1"
                                     >
                                       {selectedFiles.has(`${category}/${subcategory}/${file.name}`) ? (
-                                        <CheckSquare size={20} className="text-orange-500" />
+                                        <CheckSquare size={18} className="text-gold-500" />
                                       ) : (
-                                        <Square size={20} className="text-gray-400" />
+                                        <Square size={18} className="text-gold-500/30" />
                                       )}
                                     </button>
                                   )}
 
-                                  <span className="text-2xl">📄</span>
+                                  <File size={20} className="text-gold-500/50" />
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <p className="text-sm font-medium text-gray-800">{file.name}</p>
+                                      <p className="text-sm font-medium text-gold-100">{file.name}</p>
                                       {favorites.has(`${category}/${subcategory}/${file.name}`) && (
-                                        <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                                        <Star size={14} className="text-gold-500 fill-gold-500" />
                                       )}
                                     </div>
-                                    <p className="text-xs text-gray-500">{formatBytes(file.size)}</p>
+                                    <p className="text-xs text-gold-200/50">{formatBytes(file.size)}</p>
                                   </div>
                                 </div>
 
@@ -608,38 +746,38 @@ export default function DashboardPage() {
                                   {/* Favorite Star (Premium) */}
                                   <button
                                     onClick={() => toggleFavorite(`${category}/${subcategory}/${file.name}`)}
-                                    className="p-2 hover:bg-yellow-100 rounded-lg transition-colors relative"
+                                    className="p-2 hover:bg-gold-500/10 transition-colors relative border border-transparent hover:border-gold-500/30"
                                     title={user?.subscriptionTier === 'premium' ? "Add to Favorites" : "Premium Feature"}
                                   >
                                     {user?.subscriptionTier !== 'premium' && (
-                                      <Lock size={10} className="absolute top-0 right-0 text-gray-400" />
+                                      <Lock size={10} className="absolute top-0 right-0 text-gold-500/50" />
                                     )}
                                     <Star
-                                      size={18}
-                                      className={favorites.has(`${category}/${subcategory}/${file.name}`) ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}
+                                      size={16}
+                                      className={favorites.has(`${category}/${subcategory}/${file.name}`) ? "text-gold-500 fill-gold-500" : "text-gold-500/30"}
                                     />
                                   </button>
 
                                   <button
                                     onClick={() => handlePreview(file.name, category, subcategory)}
-                                    className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-gold-500/10 transition-colors border border-transparent hover:border-gold-500/30"
                                     title="Preview"
                                   >
-                                    <Eye size={18} className="text-blue-600" />
+                                    <Eye size={16} className="text-gold-500" />
                                   </button>
                                   <button
                                     onClick={() => handleDownload(category, subcategory, file.name)}
-                                    className="p-2 hover:bg-green-100 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-gold-500/10 transition-colors border border-transparent hover:border-gold-500/30"
                                     title="Download"
                                   >
-                                    <Download size={18} className="text-green-600" />
+                                    <Download size={16} className="text-gold-500" />
                                   </button>
                                   <button
                                     onClick={() => handleDelete(category, subcategory, file.name)}
-                                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-red-900/20 transition-colors border border-transparent hover:border-red-500/30"
                                     title="Delete"
                                   >
-                                    <Trash2 size={18} className="text-red-600" />
+                                    <Trash2 size={16} className="text-red-400" />
                                   </button>
                                 </div>
                               </motion.div>
@@ -653,57 +791,57 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📭</div>
-              <p className="text-gray-600 text-lg mb-4">No files uploaded yet</p>
-              <Link href="/upload" className="btn btn-primary inline-flex items-center gap-2">
+            <div className="text-center py-16">
+              <Database size={72} className="mx-auto mb-6 text-gold-500/30" />
+              <p className="text-gold-200 text-lg mb-6 font-display tracking-wide">No files uploaded yet</p>
+              <Link href="/upload" className="btn-luxury inline-flex items-center gap-2">
                 <Upload size={18} />
-                Upload Your First Files
+                <span className="uppercase tracking-wider text-sm">Upload Your First Files</span>
               </Link>
             </div>
           )}
         </motion.div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Premium Preview Modal */}
       {previewFile && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
           onClick={() => setPreviewFile(null)}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-auto"
+            className="bg-premium-900 border-2 border-gold-500/30 p-8 max-w-5xl w-full max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">{previewFile.name}</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-display font-bold text-gold-500 tracking-wide">{previewFile.name}</h3>
               <button
                 onClick={() => setPreviewFile(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gold-500/10 border border-gold-500/30 hover:border-gold-500 transition-colors"
               >
-                <X size={24} />
+                <X size={24} className="text-gold-500" />
               </button>
             </div>
 
-            <div className="flex items-center justify-center bg-gray-100 rounded-lg p-4 min-h-[400px]">
+            <div className="flex items-center justify-center bg-premium-950 border border-gold-500/20 p-6 min-h-[500px]">
               {previewFile.type === 'image' ? (
                 <img
-                  src={`http://localhost:5001${previewFile.path}`}
+                  src={`${process.env.NEXT_PUBLIC_STORAGE_URL}${previewFile.path}`}
                   alt={previewFile.name}
                   className="max-w-full max-h-[70vh] object-contain"
                 />
               ) : previewFile.type === 'video' ? (
                 <video
-                  src={`http://localhost:5001${previewFile.path}`}
+                  src={`${process.env.NEXT_PUBLIC_STORAGE_URL}${previewFile.path}`}
                   controls
                   className="max-w-full max-h-[70vh]"
                 />
               ) : (
-                <div className="text-center text-gray-500">
-                  <File size={64} className="mx-auto mb-4" />
-                  <p>Preview not available for this file type</p>
+                <div className="text-center text-gold-200/70">
+                  <File size={72} className="mx-auto mb-6 text-gold-500/30" />
+                  <p className="font-display tracking-wide">Preview not available for this file type</p>
                 </div>
               )}
             </div>

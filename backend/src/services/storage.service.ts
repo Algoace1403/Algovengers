@@ -31,12 +31,28 @@ interface UserStorageStats {
 
 class StorageService {
   private baseStoragePath: string;
-  private readonly STORAGE_LIMIT_GB = 100;
-  private readonly STORAGE_LIMIT_BYTES = 100 * 1024 * 1024 * 1024; // 100GB in bytes
+  private readonly FREE_LIMIT_GB = 100;
+  private readonly PREMIUM_LIMIT_GB = 500;
+  private readonly FREE_LIMIT_BYTES = 100 * 1024 * 1024 * 1024; // 100GB in bytes
+  private readonly PREMIUM_LIMIT_BYTES = 500 * 1024 * 1024 * 1024; // 500GB in bytes
 
   constructor() {
     this.baseStoragePath = path.join(__dirname, '../../storage/users');
     this.ensureStorageStructure();
+  }
+
+  /**
+   * Get storage limit based on subscription tier
+   */
+  private getStorageLimitBytes(tier: 'free' | 'premium' = 'free'): number {
+    return tier === 'premium' ? this.PREMIUM_LIMIT_BYTES : this.FREE_LIMIT_BYTES;
+  }
+
+  /**
+   * Get storage limit in GB based on subscription tier
+   */
+  private getStorageLimitGB(tier: 'free' | 'premium' = 'free'): number {
+    return tier === 'premium' ? this.PREMIUM_LIMIT_GB : this.FREE_LIMIT_GB;
   }
 
   /**
@@ -101,7 +117,7 @@ class StorageService {
   /**
    * Check if user has enough storage space
    */
-  public checkStorageLimit(userId: string, additionalSize: number): {
+  public checkStorageLimit(userId: string, additionalSize: number, tier: 'free' | 'premium' = 'free'): {
     allowed: boolean;
     currentSize: number;
     newSize: number;
@@ -109,12 +125,13 @@ class StorageService {
   } {
     const currentSize = this.calculateUserStorage(userId);
     const newSize = currentSize + additionalSize;
+    const limit = this.getStorageLimitBytes(tier);
 
     return {
-      allowed: newSize <= this.STORAGE_LIMIT_BYTES,
+      allowed: newSize <= limit,
       currentSize,
       newSize,
-      limit: this.STORAGE_LIMIT_BYTES
+      limit
     };
   }
 
@@ -140,7 +157,8 @@ class StorageService {
     userId: string,
     tempFilePath: string,
     originalName: string,
-    categoryInfo: CategoryInfo
+    categoryInfo: CategoryInfo,
+    tier: 'free' | 'premium' = 'free'
   ): OrganizedFile {
     try {
       this.ensureUserStorage(userId);
@@ -152,10 +170,11 @@ class StorageService {
       const fileSize = fileStats.size;
 
       // Check storage limit
-      const storageCheck = this.checkStorageLimit(userId, fileSize);
+      const storageCheck = this.checkStorageLimit(userId, fileSize, tier);
       if (!storageCheck.allowed) {
         const usedGB = (storageCheck.currentSize / (1024 * 1024 * 1024)).toFixed(2);
-        throw new Error(`Storage limit exceeded. You've used ${usedGB}GB of your 100GB limit.`);
+        const limitGB = this.getStorageLimitGB(tier);
+        throw new Error(`Storage limit exceeded. You've used ${usedGB}GB of your ${limitGB}GB limit.`);
       }
 
       // Create category folder
@@ -203,7 +222,8 @@ class StorageService {
       category: string;
       subcategory: string;
       confidence?: number;
-    }>
+    }>,
+    tier: 'free' | 'premium' = 'free'
   ): OrganizedFile[] {
     const results: OrganizedFile[] = [];
 
@@ -217,13 +237,13 @@ class StorageService {
           category: aiCategory.category,
           subcategory: aiCategory.subcategory,
           confidence: aiCategory.confidence
-        });
+        }, tier);
         results.push(result);
       } else {
         const result = this.organizeFile(userId, file.path, file.originalName, {
           category: 'Uncategorized',
           subcategory: 'General'
-        });
+        }, tier);
         results.push(result);
       }
     }
@@ -274,14 +294,15 @@ class StorageService {
   /**
    * Get storage statistics for user
    */
-  public getStorageStats(userId: string): UserStorageStats {
+  public getStorageStats(userId: string, tier: 'free' | 'premium' = 'free'): UserStorageStats {
     const userPath = this.getUserStoragePath(userId);
+    const limitGB = this.getStorageLimitGB(tier);
 
     const stats: UserStorageStats = {
       totalFiles: 0,
       totalSize: 0,
       usedGB: 0,
-      limitGB: this.STORAGE_LIMIT_GB,
+      limitGB,
       percentUsed: 0,
       categories: {}
     };
@@ -292,7 +313,7 @@ class StorageService {
 
     stats.totalSize = this.calculateUserStorage(userId);
     stats.usedGB = stats.totalSize / (1024 * 1024 * 1024);
-    stats.percentUsed = (stats.usedGB / this.STORAGE_LIMIT_GB) * 100;
+    stats.percentUsed = (stats.usedGB / limitGB) * 100;
 
     const categories = fs.readdirSync(userPath);
 

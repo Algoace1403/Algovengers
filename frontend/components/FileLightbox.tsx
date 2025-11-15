@@ -220,7 +220,7 @@ export default function FileLightbox({
         >
           {file.type === 'image' ? (
             <motion.img
-              src={`http://localhost:5001${file.path}`}
+              src={`${process.env.NEXT_PUBLIC_STORAGE_URL}${file.path}`}
               alt={file.name}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-zoom-in"
               style={{ transform: `scale(${zoom})` }}
@@ -238,7 +238,7 @@ export default function FileLightbox({
             />
           ) : file.type === 'video' ? (
             <video
-              src={`http://localhost:5001${file.path}`}
+              src={`${process.env.NEXT_PUBLIC_STORAGE_URL}${file.path}`}
               controls
               autoPlay
               className="max-w-full max-h-full rounded-lg shadow-2xl"
