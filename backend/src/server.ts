@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { connectDatabase } from './config/database';
 // import mongoSanitize from 'express-mongo-sanitize'; // Temporarily disabled - incompatible with Express 5.x
 
 dotenv.config();
@@ -70,15 +71,15 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Start server (using file-based storage - no database connection needed)
+// Start server with MongoDB connection
 const startServer = async () => {
-  // MongoDB connection disabled - using file-based JSON storage
-  console.log('💾 Using file-based storage for users (no MongoDB required)');
+  // Connect to MongoDB
+  await connectDatabase();
 
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📁 Storage directory: ${path.join(__dirname, '../storage')}`);
-    console.log(`👤 User data: ${path.join(__dirname, '../storage/users.json')}`);
+    console.log(`💾 MongoDB integration enabled for user data, files, and analytics`);
   });
 };
 

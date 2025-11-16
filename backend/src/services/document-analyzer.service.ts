@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-const pdfParse = require('pdf-parse');
 import csv from 'csv-parser';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
+
+// PDF parsing with TypeScript compatibility
+const pdfParse = require('pdf-parse') as any;
 
 interface DocumentAnalysis {
   category: string;

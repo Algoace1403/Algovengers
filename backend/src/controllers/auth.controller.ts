@@ -4,9 +4,8 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-// MongoDB imports disabled - using file-based storage only
-// import { User, IUser } from '../models/user.model';
-// import { isConnected } from '../config/database';
+import { User, IUser } from '../models/user.model';
+import { isConnected } from '../config/database';
 
 // File-based user storage interface (fallback)
 interface UserFile {
@@ -79,54 +78,98 @@ export const register = async (req: Request, res: Response) => {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const uniqueId = generateUniqueUserId();
 
-    // Use file-based storage only (MongoDB disabled)
-    const users = await loadUsersFromFile();
+    // Use MongoDB if connected, otherwise fall back to file-based storage
+    if (isConnected()) {
+      // MongoDB registration
+      const existingUser = await User.findOne({ email: email.toLowerCase() });
 
-    const existingUser = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
+      if (existingUser) {
+        return res.status(400).json({
+          error: 'User with this email already exists',
+        });
+      }
 
-    if (existingUser) {
-      return res.status(400).json({
-        error: 'User with this email already exists',
+      const uniqueId = generateUniqueUserId();
+
+      const newUser = await User.create({
+        id: uniqueId,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        name,
+        subscription: {
+          tier: 'free',
+        },
+        storageUsed: 0,
+        favorites: [],
+      });
+
+      const token = generateToken(newUser.id, newUser.email);
+
+      console.log(`✅ New user registered (MongoDB): ${email} | ID: ${newUser.id}`);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful',
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          subscription: newUser.subscription,
+          storageUsed: newUser.storageUsed,
+          favorites: newUser.favorites,
+        },
+      });
+    } else {
+      // File-based storage fallback
+      const uniqueId = generateUniqueUserId();
+      const users = await loadUsersFromFile();
+
+      const existingUser = users.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (existingUser) {
+        return res.status(400).json({
+          error: 'User with this email already exists',
+        });
+      }
+
+      const newUser: UserFile = {
+        id: uniqueId,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        name,
+        createdAt: new Date().toISOString(),
+        subscription: {
+          tier: 'free',
+        },
+        storageUsed: 0,
+        favorites: [],
+      };
+
+      users.push(newUser);
+      await saveUsersToFile(users);
+
+      const token = generateToken(newUser.id, newUser.email);
+
+      console.log(`✅ New user registered (File): ${email} | ID: ${newUser.id}`);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful',
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          subscription: newUser.subscription,
+          storageUsed: newUser.storageUsed,
+          favorites: newUser.favorites,
+        },
       });
     }
-
-    const newUser: UserFile = {
-      id: uniqueId,
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      name,
-      createdAt: new Date().toISOString(),
-      subscription: {
-        tier: 'free',
-      },
-      storageUsed: 0,
-      favorites: [],
-    };
-
-    users.push(newUser);
-    await saveUsersToFile(users);
-
-    const token = generateToken(newUser.id, newUser.email);
-
-    console.log(`✅ New user registered: ${email} | ID: ${newUser.id}`);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Registration successful',
-      token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        subscription: newUser.subscription,
-        storageUsed: newUser.storageUsed,
-        favorites: newUser.favorites,
-      },
-    });
   } catch (error: any) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
@@ -145,44 +188,82 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Use file-based storage only (MongoDB disabled)
-    const users = await loadUsersFromFile();
+    // Use MongoDB if connected, otherwise fall back to file-based storage
+    if (isConnected()) {
+      // MongoDB login
+      const user = await User.findOne({ email: email.toLowerCase() });
 
-    const user = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
+      if (!user) {
+        return res.status(401).json({
+          error: 'Invalid email or password',
+        });
+      }
 
-    if (!user) {
-      return res.status(401).json({
-        error: 'Invalid email or password',
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          error: 'Invalid email or password',
+        });
+      }
+
+      const token = generateToken(user.id, user.email);
+
+      console.log(`✅ User logged in (MongoDB): ${email} | Tier: ${user.subscription?.tier?.toUpperCase()}`);
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          subscription: user.subscription,
+          storageUsed: user.storageUsed,
+          favorites: user.favorites,
+        },
+      });
+    } else {
+      // File-based storage fallback
+      const users = await loadUsersFromFile();
+
+      const user = users.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!user) {
+        return res.status(401).json({
+          error: 'Invalid email or password',
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          error: 'Invalid email or password',
+        });
+      }
+
+      const token = generateToken(user.id, user.email);
+
+      console.log(`✅ User logged in (File): ${email} | Tier: ${user.subscription?.tier?.toUpperCase()}`);
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          subscription: user.subscription,
+          storageUsed: user.storageUsed,
+          favorites: user.favorites,
+        },
       });
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        error: 'Invalid email or password',
-      });
-    }
-
-    const token = generateToken(user.id, user.email);
-
-    console.log(`✅ User logged in: ${email} | Tier: ${user.subscription?.tier?.toUpperCase()}`);
-
-    return res.json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        subscription: user.subscription,
-        storageUsed: user.storageUsed,
-        favorites: user.favorites,
-      },
-    });
   } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
@@ -194,26 +275,49 @@ export const getMe = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
-    // Use file-based storage only (MongoDB disabled)
-    const users = await loadUsersFromFile();
-    const user = users.find((u) => u.id === userId);
+    // Use MongoDB if connected, otherwise fall back to file-based storage
+    if (isConnected()) {
+      // MongoDB getMe
+      const user = await User.findOne({ id: userId });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          subscription: user.subscription,
+          storageUsed: user.storageUsed,
+          favorites: user.favorites,
+          createdAt: user.createdAt,
+        },
+      });
+    } else {
+      // File-based storage fallback
+      const users = await loadUsersFromFile();
+      const user = users.find((u) => u.id === userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          subscription: user.subscription,
+          storageUsed: user.storageUsed,
+          favorites: user.favorites,
+          createdAt: user.createdAt,
+        },
+      });
     }
-
-    return res.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        subscription: user.subscription,
-        storageUsed: user.storageUsed,
-        favorites: user.favorites,
-        createdAt: user.createdAt,
-      },
-    });
   } catch (error: any) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
@@ -223,20 +327,38 @@ export const getMe = async (req: Request, res: Response) => {
 // Get all users (for debugging - remove in production)
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    // Use file-based storage only (MongoDB disabled)
-    const users = await loadUsersFromFile();
-    return res.json({
-      success: true,
-      count: users.length,
-      users: users.map((u) => ({
-        id: u.id,
-        email: u.email,
-        name: u.name,
-        subscription: u.subscription,
-        storageUsed: u.storageUsed,
-        createdAt: u.createdAt,
-      })),
-    });
+    // Use MongoDB if connected, otherwise fall back to file-based storage
+    if (isConnected()) {
+      // MongoDB getAllUsers
+      const users = await User.find().select('-password');
+      return res.json({
+        success: true,
+        count: users.length,
+        users: users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          subscription: u.subscription,
+          storageUsed: u.storageUsed,
+          createdAt: u.createdAt,
+        })),
+      });
+    } else {
+      // File-based storage fallback
+      const users = await loadUsersFromFile();
+      return res.json({
+        success: true,
+        count: users.length,
+        users: users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          subscription: u.subscription,
+          storageUsed: u.storageUsed,
+          createdAt: u.createdAt,
+        })),
+      });
+    }
   } catch (error: any) {
     console.error('Get all users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
@@ -245,20 +367,52 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 // Helper function to get user by ID (used by other controllers)
 export const getUserById = async (userId: string): Promise<any> => {
-  // Use file-based storage only (MongoDB disabled)
-  const users = await loadUsersFromFile();
-  return users.find((u) => u.id === userId);
+  // Use MongoDB if connected, otherwise fall back to file-based storage
+  if (isConnected()) {
+    const user = await User.findOne({ id: userId });
+    if (user) {
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        subscription: user.subscription,
+        storageUsed: user.storageUsed,
+        favorites: user.favorites,
+        createdAt: user.createdAt,
+      };
+    }
+    return null;
+  } else {
+    const users = await loadUsersFromFile();
+    return users.find((u) => u.id === userId);
+  }
 };
 
 // Helper function to update user (used by other controllers)
 export const updateUser = async (userId: string, updates: any): Promise<any> => {
-  // Use file-based storage only (MongoDB disabled)
-  const users = await loadUsersFromFile();
-  const userIndex = users.findIndex((u) => u.id === userId);
-  if (userIndex !== -1) {
-    users[userIndex] = { ...users[userIndex], ...updates };
-    await saveUsersToFile(users);
-    return users[userIndex];
+  // Use MongoDB if connected, otherwise fall back to file-based storage
+  if (isConnected()) {
+    const user = await User.findOneAndUpdate({ id: userId }, updates, { new: true });
+    if (user) {
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        subscription: user.subscription,
+        storageUsed: user.storageUsed,
+        favorites: user.favorites,
+        createdAt: user.createdAt,
+      };
+    }
+    return null;
+  } else {
+    const users = await loadUsersFromFile();
+    const userIndex = users.findIndex((u) => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex] = { ...users[userIndex], ...updates };
+      await saveUsersToFile(users);
+      return users[userIndex];
+    }
+    return null;
   }
-  return null;
 };
