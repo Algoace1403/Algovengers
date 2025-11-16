@@ -14,10 +14,10 @@ export default function HomePage() {
         animate={{ y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="container mx-auto px-8 py-6">
+        <div className="container mx-auto px-12 lg:px-16 py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-4 group">
-              <div className="w-12 h-12 bg-gradient-gold flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-gold flex items-center justify-center rounded-lg shadow-lg">
                 <span className="text-premium-950 font-display text-2xl">IS</span>
               </div>
               <div>
@@ -42,7 +42,7 @@ export default function HomePage() {
       </motion.header>
 
       {/* Hero Section - Ultra Premium */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-32">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
@@ -51,7 +51,40 @@ export default function HomePage() {
           }}></div>
         </div>
 
-        <div className="container mx-auto px-8 relative z-10">
+        {/* Floating particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, #d4af37, #f4e4c1)',
+                left: `${(i * 8 + 10) % 90}%`,
+                top: `${(i * 13 + 20) % 80}%`,
+                opacity: 0.3,
+              }}
+              animate={{
+                y: [-20, -60, -20],
+                x: [0, 20, 0],
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 4 + i * 0.5,
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Radial glow effect */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gold-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto px-12 lg:px-16 relative z-10">
           <motion.div
             className="max-w-5xl mx-auto text-center"
             initial={{ opacity: 0, y: 40 }}
@@ -60,13 +93,14 @@ export default function HomePage() {
           >
             {/* Premium Badge */}
             <motion.div
-              className="inline-flex items-center gap-3 px-6 py-3 bg-gold-500/10 border border-gold-500/30 mb-12"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gold-500/10 via-gold-500/20 to-gold-500/10 border-2 border-gold-500/40 mb-12 rounded-full shadow-lg backdrop-blur-sm"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(212, 175, 55, 0.3)" }}
             >
               <Crown className="w-5 h-5 text-gold-500" />
-              <span className="text-gold-500 uppercase tracking-[0.3em] text-sm font-display">Premium Storage Solution</span>
+              <span className="text-gold-500 uppercase tracking-[0.3em] text-sm font-display font-semibold">Premium Storage Solution</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -80,56 +114,154 @@ export default function HomePage() {
             <div className="w-32 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent mx-auto mb-8"></div>
 
             {/* Subtitle */}
-            <p className="text-2xl text-premium-700 dark:text-gold-100/80 mb-16 font-light tracking-wide max-w-3xl mx-auto leading-relaxed">
+            <motion.p
+              className="text-2xl text-premium-700 dark:text-gold-100/80 mb-20 font-light tracking-wide max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
               Experience unparalleled organization powered by artificial intelligence.
               <br className="hidden md:block" />
-              Where sophistication meets innovation.
-            </p>
+              <span className="text-gold-500 font-medium">Where sophistication meets innovation.</span>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-8">
               <Link href="/register">
                 <motion.button
-                  className="btn-luxury px-12 py-5 text-base"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="relative px-16 py-7 text-lg font-bold rounded-2xl overflow-hidden group shadow-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #d4af37 0%, #f4e4c1 50%, #d4af37 100%)',
+                    boxShadow: '0 20px 60px rgba(212, 175, 55, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.3)',
+                  }}
+                  whileHover={{
+                    scale: 1.1,
+                    y: -4,
+                    boxShadow: '0 30px 80px rgba(212, 175, 55, 0.6), 0 0 40px rgba(212, 175, 55, 0.4), 0 0 0 2px rgba(212, 175, 55, 0.5)'
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{
+                    boxShadow: [
+                      '0 20px 60px rgba(212, 175, 55, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.3)',
+                      '0 20px 60px rgba(212, 175, 55, 0.6), 0 0 20px rgba(212, 175, 55, 0.3), 0 0 0 1px rgba(212, 175, 55, 0.4)',
+                      '0 20px 60px rgba(212, 175, 55, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.3)',
+                    ]
+                  }}
+                  transition={{
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
                 >
-                  <span className="flex items-center gap-3">
+                  {/* Shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+
+                  {/* Button content */}
+                  <span className="flex items-center gap-4 relative z-10 text-premium-950 uppercase tracking-[0.2em] font-display">
+                    <motion.div
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <Crown className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                    </motion.div>
                     Begin Your Journey
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                   </span>
                 </motion.button>
               </Link>
+
               <Link href="/pricing">
                 <motion.button
-                  className="btn-secondary px-12 py-5 text-base border-gold-500/30 hover:border-gold-500"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="relative px-16 py-7 text-lg font-bold border-3 rounded-2xl overflow-hidden group bg-white/5 backdrop-blur-sm"
+                  style={{
+                    borderWidth: '2px',
+                    borderImage: 'linear-gradient(135deg, #d4af37, #f4e4c1, #d4af37) 1',
+                    boxShadow: '0 10px 40px rgba(212, 175, 55, 0.2)'
+                  }}
+                  whileHover={{
+                    scale: 1.08,
+                    y: -3,
+                    boxShadow: '0 20px 60px rgba(212, 175, 55, 0.4), 0 0 20px rgba(212, 175, 55, 0.2)'
+                  }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Explore Plans
+                  {/* Glow effect on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-gold-500/0 via-gold-500/20 to-gold-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                  <span className="relative z-10 flex items-center gap-3 text-gold-500 uppercase tracking-[0.2em] font-display">
+                    <Zap className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+                    Explore Plans
+                    <Shield className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+                  </span>
                 </motion.button>
               </Link>
             </div>
 
+            {/* Trust indicators */}
+            <motion.div
+              className="flex items-center justify-center gap-6 flex-wrap text-sm text-premium-600 dark:text-gold-200/60 mb-16"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="font-medium">No credit card required</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-gold-500/30"></div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-gold-500" />
+                <span className="font-medium">100% Secure</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-gold-500/30"></div>
+              <div className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-gold-500" />
+                <span className="font-medium">Premium Features Included</span>
+              </div>
+            </motion.div>
+
             {/* Stats */}
             <motion.div
-              className="grid grid-cols-3 gap-8 mt-24 max-w-3xl mx-auto"
+              className="grid grid-cols-3 gap-12 mt-16 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1 }}
             >
-              <div className="text-center">
-                <div className="luxury-number mb-2">500GB</div>
-                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider">Premium Storage</p>
-              </div>
-              <div className="text-center">
-                <div className="luxury-number mb-2">AI</div>
-                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider">Powered</p>
-              </div>
-              <div className="text-center">
-                <div className="luxury-number mb-2">24/7</div>
-                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider">Support</p>
-              </div>
+              <motion.div
+                className="text-center group"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="relative inline-block">
+                  <div className="luxury-number mb-3 group-hover:scale-110 transition-transform">500GB</div>
+                  <div className="absolute -inset-4 bg-gold-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider font-semibold">Premium Storage</p>
+                <p className="text-xs text-premium-600 dark:text-gold-200/60 mt-1">5x more space</p>
+              </motion.div>
+              <motion.div
+                className="text-center group"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="relative inline-block">
+                  <div className="luxury-number mb-3 group-hover:scale-110 transition-transform">AI</div>
+                  <div className="absolute -inset-4 bg-gold-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider font-semibold">Powered</p>
+                <p className="text-xs text-premium-600 dark:text-gold-200/60 mt-1">Smart categorization</p>
+              </motion.div>
+              <motion.div
+                className="text-center group"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="relative inline-block">
+                  <div className="luxury-number mb-3 group-hover:scale-110 transition-transform">24/7</div>
+                  <div className="absolute -inset-4 bg-gold-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <p className="text-premium-700 dark:text-gold-200 text-sm uppercase tracking-wider font-semibold">Support</p>
+                <p className="text-xs text-premium-600 dark:text-gold-200/60 mt-1">Always here for you</p>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
@@ -148,7 +280,7 @@ export default function HomePage() {
 
       {/* Features Section - Premium Grid */}
       <section className="premium-section bg-gradient-to-b from-white to-gray-50 dark:from-premium-950 dark:to-premium-900">
-        <div className="container mx-auto px-8">
+        <div className="container mx-auto px-12 lg:px-16">
           <motion.div
             className="text-center mb-20"
             initial={{ opacity: 0 }}
@@ -171,7 +303,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
+              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
                 <Shield className="w-8 h-8 text-gold-500" />
               </div>
               <h3 className="text-2xl font-display font-bold mb-4 text-gold-500">Uncompromising Security</h3>
@@ -188,7 +320,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
+              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
                 <Zap className="w-8 h-8 text-gold-500" />
               </div>
               <h3 className="text-2xl font-display font-bold mb-4 text-gold-500">Instantaneous Intelligence</h3>
@@ -205,7 +337,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
+              <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gold-500/20 transition-all duration-500">
                 <Crown className="w-8 h-8 text-gold-500" />
               </div>
               <h3 className="text-2xl font-display font-bold mb-4 text-gold-500">Premium Experience</h3>
@@ -219,7 +351,7 @@ export default function HomePage() {
 
       {/* Premium Plan Showcase */}
       <section className="premium-section bg-gray-100 dark:bg-premium-900">
-        <div className="container mx-auto px-8">
+        <div className="container mx-auto px-12 lg:px-16">
           <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0 }}
@@ -237,7 +369,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div
-            className="card-dark border-4 border-gold-500/30 bg-gradient-to-br from-premium-950 via-premium-900 to-premium-950 relative overflow-hidden max-w-6xl mx-auto"
+            className="card-dark border-4 border-gold-500/30 bg-gradient-to-br from-premium-950 via-premium-900 to-premium-950 relative overflow-hidden max-w-6xl mx-auto rounded-2xl"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -250,7 +382,7 @@ export default function HomePage() {
               {/* Header */}
               <div className="flex items-center justify-between mb-10 pb-8 border-b border-gold-500/20 flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-gold flex items-center justify-center">
+                  <div className="w-16 h-16 bg-gradient-gold flex items-center justify-center rounded-xl shadow-lg">
                     <Crown className="w-8 h-8 text-premium-950" />
                   </div>
                   <div>
@@ -268,13 +400,13 @@ export default function HomePage() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 {/* Feature 1 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <HardDrive className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -285,13 +417,13 @@ export default function HomePage() {
 
                 {/* Feature 2 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Zap className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -302,13 +434,13 @@ export default function HomePage() {
 
                 {/* Feature 3 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Shield className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -319,13 +451,13 @@ export default function HomePage() {
 
                 {/* Feature 4 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.4 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Crown className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -336,13 +468,13 @@ export default function HomePage() {
 
                 {/* Feature 5 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.5 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Crown className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -353,13 +485,13 @@ export default function HomePage() {
 
                 {/* Feature 6 */}
                 <motion.div
-                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-3 p-5 bg-premium-950 border border-gold-500/20 hover:border-gold-500/40 transition-all duration-300 hover-lift rounded-xl"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.6 }}
                 >
-                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gold-500/10 border border-gold-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Crown className="w-6 h-6 text-gold-500" />
                   </div>
                   <div>
@@ -370,7 +502,7 @@ export default function HomePage() {
               </div>
 
               {/* CTA Footer */}
-              <div className="bg-premium-950 p-8 border-t-2 border-gold-500/30 flex items-center justify-between flex-wrap gap-6">
+              <div className="bg-premium-950 p-8 border-t-2 border-gold-500/30 rounded-b-2xl flex items-center justify-between flex-wrap gap-6">
                 <div>
                   <p className="text-gold-100 font-display text-xl mb-2">
                     <span className="text-gold-500 font-bold">Limited Time:</span> Get premium for just ₹499/year
@@ -381,13 +513,14 @@ export default function HomePage() {
                 </div>
                 <Link href="/pricing">
                   <motion.button
-                    className="btn-luxury px-12 py-5 text-base flex items-center gap-3"
-                    whileHover={{ scale: 1.05 }}
+                    className="btn-luxury px-12 py-5 text-base flex items-center gap-3 rounded-xl shadow-xl relative overflow-hidden group"
+                    whileHover={{ scale: 1.08, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Crown className="w-5 h-5" />
-                    <span className="uppercase tracking-wider">View Pricing</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <Crown className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    <span className="uppercase tracking-wider relative z-10">View Pricing</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-gold-500/20 to-gold-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </motion.button>
                 </Link>
               </div>
@@ -398,7 +531,7 @@ export default function HomePage() {
 
       {/* CTA Section - Luxury */}
       <section className="premium-section bg-gradient-to-b from-gray-50 to-white dark:from-premium-900 dark:to-premium-950">
-        <div className="container mx-auto px-8">
+        <div className="container mx-auto px-12 lg:px-16">
           <motion.div
             className="card-luxury max-w-4xl mx-auto text-center py-20"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -413,12 +546,18 @@ export default function HomePage() {
               Join the discerning few who demand excellence in digital organization.
             </p>
             <Link href="/register">
-              <button className="btn-luxury px-16 py-6 text-lg luxury-pulse">
-                <span className="flex items-center gap-3">
+              <motion.button
+                className="btn-luxury px-16 py-6 text-lg luxury-pulse rounded-xl shadow-2xl relative overflow-hidden group"
+                whileHover={{ scale: 1.08, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center gap-3 relative z-10">
+                  <Crown className="w-6 h-6 group-hover:rotate-12 transition-transform" />
                   Become a Member
-                  <ArrowRight className="w-6 h-6" />
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </span>
-              </button>
+                <div className="absolute inset-0 bg-gradient-to-r from-gold-500/30 to-gold-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </motion.button>
             </Link>
           </motion.div>
         </div>
@@ -426,10 +565,10 @@ export default function HomePage() {
 
       {/* Footer - Minimal & Elegant */}
       <footer className="border-t border-gold-500/20 py-12 bg-white dark:bg-premium-950">
-        <div className="container mx-auto px-8">
+        <div className="container mx-auto px-12 lg:px-16">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-gold flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-gold flex items-center justify-center rounded-lg shadow-md">
                 <span className="text-premium-950 font-display text-lg">IS</span>
               </div>
               <div>

@@ -101,11 +101,11 @@ h1, h2, h3 {
 
 /* Premium cards */
 .card {
-  @apply bg-white rounded-none shadow-luxury p-8 transition-all duration-700 hover:shadow-luxury-lg border border-premium-200;
+  @apply bg-white rounded-lg shadow-luxury p-8 transition-all duration-700 hover:shadow-luxury-lg border border-premium-200;
 }
 
 .card-luxury {
-  @apply bg-gradient-to-br from-white to-gold-50 rounded-none shadow-gold-lg p-10 transition-all duration-700 hover:shadow-gold-lg hover:-translate-y-1 border-2 border-gold-500/20;
+  @apply bg-gradient-to-br from-white to-gold-50 rounded-2xl shadow-gold-lg p-10 transition-all duration-700 hover:shadow-gold-lg hover:-translate-y-1 border-2 border-gold-500/20;
   position: relative;
   overflow: hidden;
 }
@@ -126,12 +126,12 @@ h1, h2, h3 {
 }
 
 .card-dark {
-  @apply bg-premium-950 text-white rounded-none shadow-luxury-lg p-10 border border-gold-500/30;
+  @apply bg-premium-950 text-white rounded-xl shadow-luxury-lg p-10 border border-gold-500/30;
 }
 
 /* Premium buttons */
 .btn {
-  @apply px-8 py-4 rounded-none font-semibold transition-all duration-500 transform relative overflow-hidden uppercase tracking-wider text-sm;
+  @apply px-8 py-4 rounded-lg font-semibold transition-all duration-500 transform relative overflow-hidden uppercase tracking-wider text-sm;
   font-family: 'Cinzel', serif;
   letter-spacing: 0.1em;
 }
@@ -336,7 +336,7 @@ h1, h2, h3 {
 
 /* Premium badge */
 .premium-badge {
-  @apply inline-flex items-center gap-2 px-4 py-2 bg-gold-500 text-premium-950 font-bold uppercase tracking-wider text-xs;
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-gold-500 text-premium-950 font-bold uppercase tracking-wider text-xs rounded-full;
   font-family: 'Cinzel', serif;
   box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
 }
@@ -373,7 +373,7 @@ h1, h2, h3 {
 
 /* Premium input fields */
 input, textarea, select {
-  @apply border-2 border-premium-200 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all duration-300 rounded-none;
+  @apply border-2 border-premium-200 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all duration-300 rounded-lg;
   font-family: 'Inter', sans-serif;
 }
 
@@ -387,6 +387,7 @@ input:focus, textarea:focus, select:focus {
   background: var(--champagne);
   overflow: hidden;
   position: relative;
+  border-radius: 9999px;
 }
 
 .progress-luxury::after {
@@ -407,7 +408,7 @@ input:focus, textarea:focus, select:focus {
 
 /* Premium tooltip */
 .tooltip-luxury {
-  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-2 bg-premium-950 text-gold-500 text-xs uppercase tracking-wider opacity-0 transition-all duration-300 pointer-events-none;
+  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-2 bg-premium-950 text-gold-500 text-xs uppercase tracking-wider opacity-0 transition-all duration-300 pointer-events-none rounded-lg;
   font-family: 'Cinzel', serif;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
