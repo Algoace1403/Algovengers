@@ -794,7 +794,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2024 Anuj Soni, Anisha Ghosh & Ayush Arora
+Copyright (c) 2025 Anuj Soni, Anisha Ghosh & Ayush Arora
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -851,7 +851,7 @@ SOFTWARE.
 
 *with AI assistance from* **Claude**
 
-*OSC Hackathon 2024*
+*OSC Hackathon 2025*
 
 ---
 
@@ -894,7 +894,7 @@ Coffee Consumed:        ∞
 
 <div align="center">
 
-**Built with passion during OSC Hackathon 2024**
+**Built with passion during OSC Hackathon 2025**
 
 [⬆ Back to Top](#-algovengers---intelligent-storage-system)
 
