@@ -1,6 +1,5 @@
-// MongoDB imports disabled - using file-based storage only
-// import { AnalyticsEvent } from '../models/analytics.model';
-// import { isConnected } from '../config/database';
+import { AnalyticsEvent } from '../models/analytics.model';
+import { isConnected } from '../config/database';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -28,17 +27,32 @@ class AnalyticsService {
     }
   ): Promise<void> {
     try {
-      // Use file-based storage only (MongoDB disabled)
-      const events = await this.loadEventsFromFile();
-      events.push({
-        userId,
-        eventType,
-        category: data?.category,
-        subcategory: data?.subcategory,
-        fileSize: data?.fileSize,
-        timestamp: new Date().toISOString(),
-      });
-      await this.saveEventsToFile(events);
+      // Use MongoDB if connected, otherwise fall back to file-based storage
+      if (isConnected()) {
+        await AnalyticsEvent.create({
+          userId,
+          eventType,
+          category: data?.category,
+          subcategory: data?.subcategory,
+          fileSize: data?.fileSize,
+          metadata: data?.metadata,
+          timestamp: new Date(),
+        });
+        console.log(`📊 MongoDB: Tracked ${eventType} event for user ${userId}`);
+      } else {
+        // File-based fallback
+        const events = await this.loadEventsFromFile();
+        events.push({
+          userId,
+          eventType,
+          category: data?.category,
+          subcategory: data?.subcategory,
+          fileSize: data?.fileSize,
+          timestamp: new Date().toISOString(),
+        });
+        await this.saveEventsToFile(events);
+        console.log(`📂 File: Tracked ${eventType} event for user ${userId}`);
+      }
     } catch (error) {
       console.error('Error tracking analytics event:', error);
     }
@@ -50,13 +64,35 @@ class AnalyticsService {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Use file-based storage only (MongoDB disabled)
-      const allEvents = await this.loadEventsFromFile();
-      const userEvents = allEvents.filter(
-        (e) =>
-          e.userId === userId &&
-          new Date(e.timestamp) >= startDate
-      );
+      let userEvents: any[] = [];
+
+      // Use MongoDB if connected, otherwise fall back to file-based storage
+      if (isConnected()) {
+        const events = await AnalyticsEvent.find({
+          userId,
+          timestamp: { $gte: startDate },
+        }).sort({ timestamp: -1 });
+
+        userEvents = events.map((e) => ({
+          userId: e.userId,
+          eventType: e.eventType,
+          category: e.category,
+          subcategory: e.subcategory,
+          fileSize: e.fileSize,
+          timestamp: e.timestamp.toISOString(),
+        }));
+        console.log(`📊 MongoDB: Retrieved ${userEvents.length} analytics events for user ${userId}`);
+      } else {
+        // File-based fallback
+        const allEvents = await this.loadEventsFromFile();
+        userEvents = allEvents.filter(
+          (e) =>
+            e.userId === userId &&
+            new Date(e.timestamp) >= startDate
+        );
+        console.log(`📂 File: Retrieved ${userEvents.length} analytics events for user ${userId}`);
+      }
+
       return this.processAnalytics(userEvents, days);
     } catch (error) {
       console.error('Error getting user analytics:', error);
