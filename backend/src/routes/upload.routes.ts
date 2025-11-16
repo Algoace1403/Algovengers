@@ -102,7 +102,7 @@ router.post('/', authMiddleware, upload.array('files', 10), async (req: Request,
       originalName: f.originalname
     }));
 
-    const organized = storageService.organizeFiles(userId, filesInfo, enhancedCategories, tier);
+    const organized = await storageService.organizeFiles(userId, filesInfo, enhancedCategories, tier);
 
     console.log(`✅ User ${userId}: Organized ${organized.length} files`);
 
@@ -261,7 +261,7 @@ router.delete('/delete/:category/:subcategory/:filename', authMiddleware, async 
     const user = await getUserById(userId);
     const tier = user?.subscription?.tier || 'free';
 
-    const success = storageService.deleteFile(userId, category, subcategory, filename);
+    const success = await storageService.deleteFile(userId, category, subcategory, filename);
 
     if (success) {
       // Track delete event

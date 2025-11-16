@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import { File } from '../models/file.model';
+import { isConnected } from '../config/database';
 
 interface CategoryInfo {
   category: string;
@@ -153,13 +156,14 @@ class StorageService {
   /**
    * Organize a single file into user's storage
    */
-  public organizeFile(
+  public async organizeFile(
     userId: string,
     tempFilePath: string,
     originalName: string,
     categoryInfo: CategoryInfo,
-    tier: 'free' | 'premium' = 'free'
-  ): OrganizedFile {
+    tier: 'free' | 'premium' = 'free',
+    aiCategoryData?: any
+  ): Promise<OrganizedFile> {
     try {
       this.ensureUserStorage(userId);
 
@@ -190,6 +194,48 @@ class StorageService {
       const newPath = path.join(categoryFolder, newFileName);
       fs.renameSync(tempFilePath, newPath);
 
+      // Calculate file hash for deduplication
+      const fileBuffer = fs.readFileSync(newPath);
+      const hash = crypto.createHash('md5').update(fileBuffer).digest('hex');
+
+      // Determine MIME type
+      const mimeType = this.getMimeType(ext);
+
+      // Save metadata to MongoDB if connected
+      if (isConnected()) {
+        try {
+          await File.create({
+            userId,
+            filename: newFileName,
+            originalName,
+            path: newPath,
+            size: fileSize,
+            mimeType,
+            category,
+            subcategory,
+            aiCategory: aiCategoryData ? {
+              prediction: aiCategoryData.category || category,
+              confidence: aiCategoryData.confidence || 0,
+              keywords: aiCategoryData.keywords || []
+            } : undefined,
+            documentAnalysis: aiCategoryData?.metadata ? {
+              wordCount: aiCategoryData.metadata.wordCount,
+              pageCount: aiCategoryData.metadata.pageCount,
+              rowCount: aiCategoryData.metadata.rowCount,
+              columnCount: aiCategoryData.metadata.columnCount,
+              extractedText: aiCategoryData.extractedText,
+              keywords: aiCategoryData.metadata.detectedKeywords
+            } : undefined,
+            tags: [],
+            isFavorite: false,
+            hash
+          });
+          console.log(`💾 MongoDB: Saved metadata for ${originalName}`);
+        } catch (dbError: any) {
+          console.error(`⚠️  MongoDB save failed for ${originalName}:`, dbError.message);
+        }
+      }
+
       console.log(`✅ User ${userId}: ${originalName} → ${category}/${subcategory}`);
 
       return {
@@ -212,9 +258,33 @@ class StorageService {
   }
 
   /**
+   * Get MIME type from file extension
+   */
+  private getMimeType(ext: string): string {
+    const mimeTypes: { [key: string]: string } = {
+      '.pdf': 'application/pdf',
+      '.txt': 'text/plain',
+      '.csv': 'text/csv',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.doc': 'application/msword',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.xls': 'application/vnd.ms-excel',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.mp4': 'video/mp4',
+      '.mp3': 'audio/mpeg',
+      '.zip': 'application/zip',
+      '.json': 'application/json'
+    };
+    return mimeTypes[ext.toLowerCase()] || 'application/octet-stream';
+  }
+
+  /**
    * Organize multiple files for user
    */
-  public organizeFiles(
+  public async organizeFiles(
     userId: string,
     files: FileInfo[],
     aiCategories: Array<{
@@ -222,9 +292,12 @@ class StorageService {
       category: string;
       subcategory: string;
       confidence?: number;
+      keywords?: string[];
+      metadata?: any;
+      extractedText?: string;
     }>,
     tier: 'free' | 'premium' = 'free'
-  ): OrganizedFile[] {
+  ): Promise<OrganizedFile[]> {
     const results: OrganizedFile[] = [];
 
     for (const file of files) {
@@ -233,14 +306,14 @@ class StorageService {
       );
 
       if (aiCategory) {
-        const result = this.organizeFile(userId, file.path, file.originalName, {
+        const result = await this.organizeFile(userId, file.path, file.originalName, {
           category: aiCategory.category,
           subcategory: aiCategory.subcategory,
           confidence: aiCategory.confidence
-        }, tier);
+        }, tier, aiCategory);
         results.push(result);
       } else {
-        const result = this.organizeFile(userId, file.path, file.originalName, {
+        const result = await this.organizeFile(userId, file.path, file.originalName, {
           category: 'Uncategorized',
           subcategory: 'General'
         }, tier);
@@ -389,13 +462,25 @@ class StorageService {
   /**
    * Delete a file from user's storage
    */
-  public deleteFile(userId: string, category: string, subcategory: string, filename: string): boolean {
+  public async deleteFile(userId: string, category: string, subcategory: string, filename: string): Promise<boolean> {
     try {
       const userPath = this.getUserStoragePath(userId);
       const filePath = path.join(userPath, category, subcategory, filename);
 
       if (fs.existsSync(filePath)) {
+        // Delete physical file
         fs.unlinkSync(filePath);
+
+        // Delete from MongoDB if connected
+        if (isConnected()) {
+          try {
+            await File.deleteOne({ userId, filename });
+            console.log(`💾 MongoDB: Deleted metadata for ${filename}`);
+          } catch (dbError: any) {
+            console.error(`⚠️  MongoDB delete failed for ${filename}:`, dbError.message);
+          }
+        }
+
         console.log(`🗑️  User ${userId} deleted: ${category}/${subcategory}/${filename}`);
         return true;
       }
