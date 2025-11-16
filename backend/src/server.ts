@@ -1,6 +1,5 @@
 import uploadRoutes from './routes/upload.routes';
 import authRoutes from './routes/auth.routes';
-// import paymentRoutes from './routes/payment.routes'; // DISABLED: No external API calls
 import analyticsRoutes from './routes/analytics.routes';
 import aiTrainingRoutes from './routes/ai-training.routes';
 import express, { Application, Request, Response } from 'express';
@@ -10,7 +9,6 @@ import path from 'path';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 // import mongoSanitize from 'express-mongo-sanitize'; // Temporarily disabled - incompatible with Express 5.x
-// import { connectDatabase } from './config/database'; // DISABLED: Using file-based storage instead of MongoDB
 
 dotenv.config();
 
@@ -60,7 +58,6 @@ app.use('/storage', express.static(path.join(__dirname, '../storage')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
-// app.use('/api/payment', paymentRoutes); // DISABLED: No external API calls allowed
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai-training', aiTrainingRoutes);
 

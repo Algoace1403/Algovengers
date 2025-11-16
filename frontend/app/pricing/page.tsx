@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -17,38 +17,15 @@ import {
   Sparkles,
   ArrowLeft
 } from 'lucide-react';
-import api from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
 
 export default function PricingPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Load Razorpay script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => setScriptLoaded(true);
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handleUpgrade = async () => {
+  const handleUpgrade = () => {
     if (!user) {
-      alert('Please login first to upgrade');
+      alert('Please login first to view premium features');
       router.push('/login');
       return;
     }
@@ -58,81 +35,8 @@ export default function PricingPage() {
       return;
     }
 
-    setShowPaymentModal(true);
-  };
-
-  const handlePayment = async () => {
-    try {
-      setLoading(true);
-
-      // Create order on backend
-      const { data } = await api.post('/payment/create-order');
-
-      if (!data.success) {
-        throw new Error('Failed to create order');
-      }
-
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: data.currency,
-        name: 'Intelligent Storage',
-        description: 'Premium Subscription',
-        order_id: data.orderId,
-        handler: async function (response: any) {
-          try {
-            // Verify payment on backend
-            const verifyData = await api.post('/payment/verify', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            if (verifyData.data.success) {
-              setShowPaymentModal(false);
-              alert('🎉 Payment Successful! You are now a PREMIUM member!');
-
-              // Update user in auth store
-              const updatedUser = { ...user!, subscription: verifyData.data.subscription };
-              useAuthStore.setState({ user: updatedUser as any });
-
-              router.push('/dashboard');
-            } else {
-              throw new Error('Payment verification failed');
-            }
-          } catch (error: any) {
-            console.error('Payment verification error:', error);
-            alert('Payment verification failed. Please contact support.');
-          }
-        },
-        prefill: {
-          name: user?.name || '',
-          email: user?.email || '',
-        },
-        theme: {
-          color: '#d4af37', // Gold color
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-            setShowPaymentModal(false);
-          }
-        }
-      };
-
-      if (window.Razorpay && scriptLoaded) {
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      } else {
-        alert('Payment gateway not loaded. Please refresh the page and try again.');
-      }
-
-      setLoading(false);
-    } catch (error: any) {
-      console.error('Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
-      setLoading(false);
-    }
+    // Payment system removed - Demo version
+    alert('💡 Premium features coming soon! This is a demo version for the hackathon.');
   };
 
   return (
@@ -424,68 +328,6 @@ export default function PricingPage() {
         </motion.div>
       </div>
 
-      {/* Premium Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-premium-900 border-2 border-gold-500/30 p-10 max-w-lg w-full"
-          >
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-gold mb-6">
-                <Crown className="w-10 h-10 text-premium-950" />
-              </div>
-              <h2 className="text-3xl font-display font-bold mb-3 text-gold-500 tracking-wide">Upgrade to Premium</h2>
-              <p className="text-gold-200/70 tracking-wide">Complete your payment</p>
-            </div>
-
-            <div className="bg-premium-950 border border-gold-500/20 p-6 mb-8">
-              <div className="flex justify-between items-center mb-4 pb-4 border-b border-gold-500/10">
-                <span className="text-gold-200/70">Plan</span>
-                <span className="font-display font-bold text-gold-200">Premium Yearly</span>
-              </div>
-              <div className="flex justify-between items-center mb-4 pb-4 border-b border-gold-500/10">
-                <span className="text-gold-200/70">Duration</span>
-                <span className="font-display font-bold text-gold-200">1 Year</span>
-              </div>
-              <div className="flex justify-between items-center mb-6 pb-6 border-b border-gold-500/10">
-                <span className="text-gold-200/70">Storage</span>
-                <span className="font-display font-bold text-gold-200">500 GB</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-display font-bold text-gold-500 uppercase tracking-wider">Total</span>
-                <span className="text-4xl font-display font-bold text-gold-500">₹499</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <motion.button
-                onClick={handlePayment}
-                disabled={loading}
-                className="btn-luxury w-full text-base py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
-              >
-                <span className="uppercase tracking-wider">
-                  {loading ? 'Processing...' : 'Pay ₹499'}
-                </span>
-              </motion.button>
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                disabled={loading}
-                className="btn bg-premium-800 text-gold-500 border border-gold-500/30 hover:bg-premium-700 w-full disabled:opacity-50"
-              >
-                <span className="uppercase tracking-wider text-sm">Cancel</span>
-              </button>
-            </div>
-
-            <p className="text-xs text-gold-200/50 text-center mt-6 tracking-wide">
-              Secure payment via Razorpay • Cancel anytime
-            </p>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }
