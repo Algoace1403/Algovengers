@@ -6,6 +6,7 @@ import fs from 'fs';
 import archiver from 'archiver';
 import storageService from '../services/storage.service';
 import jsonAnalyzer from '../services/json-analyzer.service';
+import documentAnalyzer from '../services/document-analyzer.service';
 import analyticsService from '../services/analytics.service';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { getUserById } from '../controllers/auth.controller';
@@ -70,13 +71,38 @@ router.post('/', authMiddleware, upload.array('files', 10), async (req: Request,
 
     console.log(`📥 User ${userId} (${tier.toUpperCase()}): Received ${files.length} files`);
 
+    // Analyze documents (PDF, TXT, CSV, DOCX, XLSX) for intelligent categorization
+    const enhancedCategories = [...aiCategories];
+    const documentExtensions = ['.pdf', '.txt', '.csv', '.docx', '.xlsx', '.xls'];
+
+    for (const file of files) {
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (documentExtensions.includes(ext)) {
+        try {
+          const analysis = await documentAnalyzer.analyzeDocument(file.path, file.originalname);
+          console.log(`📄 Analyzed ${file.originalname}: ${analysis.category}/${analysis.subcategory} (${analysis.confidence}%)`);
+
+          // Add analyzed category to the list
+          enhancedCategories.push({
+            filename: file.originalname,
+            category: analysis.category,
+            subcategory: analysis.subcategory,
+            confidence: analysis.confidence,
+            keywords: analysis.metadata.detectedKeywords
+          });
+        } catch (err) {
+          console.error(`Error analyzing ${file.originalname}:`, err);
+        }
+      }
+    }
+
     // Organize files using storage service
     const filesInfo = files.map(f => ({
       path: f.path,
       originalName: f.originalname
     }));
 
-    const organized = storageService.organizeFiles(userId, filesInfo, aiCategories, tier);
+    const organized = storageService.organizeFiles(userId, filesInfo, enhancedCategories, tier);
 
     console.log(`✅ User ${userId}: Organized ${organized.length} files`);
 
@@ -103,7 +129,7 @@ router.post('/', authMiddleware, upload.array('files', 10), async (req: Request,
         folder: org.folder,
         size: org.size,
         type: files[i].mimetype,
-        aiCategory: aiCategories.find((c: any) => c.filename === org.originalName)
+        aiCategory: enhancedCategories.find((c: any) => c.filename === org.originalName)
       })),
       metadata,
       storage: {

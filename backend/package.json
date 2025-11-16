@@ -17,15 +17,19 @@
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.11.0",
     "multer": "^2.0.2",
     "natural": "^8.1.0",
+    "pdf-parse": "^2.4.5",
     "sharp": "^0.34.5",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "xlsx": "^0.18.5"
   },
   "_removed_dependencies": {
     "_comment": "Removed for hackathon compliance - no external APIs or MongoDB allowed",
