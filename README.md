@@ -794,7 +794,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2024 Amuj, Ayush & Anisha
+Copyright (c) 2024 Anuj Soni, Anisha Ghosh & Ayush Arora
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -847,7 +847,9 @@ SOFTWARE.
 
 ### Created with ❤️ by
 
-**Amuj** | **Ayush** | **Anisha**
+**Anuj Soni** | **Anisha Ghosh** | **Ayush Arora**
+
+*with AI assistance from* **Claude**
 
 *OSC Hackathon 2024*
 
